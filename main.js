@@ -10,15 +10,14 @@ const camera = new THREE.PerspectiveCamera(
 );
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true; // Ativar sombras no renderizador
+renderer.shadowMap.enabled = true; 
 document.body.appendChild(renderer.domElement);
 
-let pokeball; // Variável para armazenar a Pokébola
-let charmander; // Variável para armazenar o Charmander
+let pokeball; 
+let charmander; 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-// Adicionar imagem de fundo
 const textureLoader = new THREE.TextureLoader();
 const backgroundTexture = textureLoader.load("cartoon-forest-background.jpg");
 scene.background = backgroundTexture;
@@ -26,23 +25,21 @@ scene.background = backgroundTexture;
 const planeGeometry = new THREE.PlaneGeometry(10, 10);
 const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.5 });
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-plane.rotation.x = -Math.PI / 2; // Plano horizontal
-plane.position.y = 0.3; // Chão
+plane.rotation.x = -Math.PI / 2;
+plane.position.y = 0.3; 
 plane.receiveShadow = true;
 scene.add(plane);
 
-// Loader para carregar os modelos
 const loader = new GLTFLoader();
 
-// Função para carregar um modelo
 function loadModel(path, position, callback) {
   loader.load(
     path,
     function (gltf) {
       const model = gltf.scene;
       model.position.set(position.x, position.y, position.z);
-      model.castShadow = true; // Ativar sombra para o modelo
-      model.receiveShadow = true; // Habilitar o recebimento de sombra
+      model.castShadow = true; 
+      model.receiveShadow = true; 
       scene.add(model);
       if (callback) callback(model);
     },
@@ -55,32 +52,28 @@ function loadModel(path, position, callback) {
   );
 }
 
-// Carregar o Charmander
 loadModel("Low_Poly_Charmander.glb", { x: 0, y: 0.5, z: -1 }, (model) => {
   charmander = model;
-  charmander.rotation.set(0, Math.PI, 0); // Virar para frente
+  charmander.rotation.set(0, Math.PI, 0); 
   charmander.traverse((node) => {
     if (node.isMesh) {
-      node.castShadow = true; // O Charmander projeta sombra
+      node.castShadow = true; 
     }
   });
   console.log("Charmander carregado:", charmander);
 });
 
-// Carregar a Pokébola
 loadModel("Low_Poly_Pokeball.glb", { x: 0, y: -0.5, z: 2 }, (model) => {
   pokeball = model;
-  pokeball.rotation.set(0, 4, 0); // Virar para frente
+  pokeball.rotation.set(0, 4, 0); 
   console.log("Pokebola carregada:", pokeball);
 });
 
-// Luz direcional (projetando sombra)
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(3, 10, 3);
-directionalLight.castShadow = true; // Habilitar a projeção de sombra na luz
+directionalLight.castShadow = true;
 scene.add(directionalLight);
 
-// Ajustar configurações da luz direcional
 directionalLight.shadow.mapSize.width = 1024;
 directionalLight.shadow.mapSize.height = 1024;
 directionalLight.shadow.camera.near = 0.5;
@@ -90,7 +83,6 @@ directionalLight.shadow.camera.right = 10;
 directionalLight.shadow.camera.top = 10;
 directionalLight.shadow.camera.bottom = -10;
 
-// Luz ambiente
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(ambientLight);
 
@@ -120,31 +112,29 @@ function createImpactEffect(position) {
   const particles = new THREE.Points(particlesGeometry, particlesMaterial);
   scene.add(particles);
 
-  // Remover partículas após um curto período
+  
   setTimeout(() => {
     scene.remove(particles);
     particlesGeometry.dispose();
     particlesMaterial.dispose();
-  }, 500); // Duração do efeito em milissegundos
+  }, 500); 
 }
 
 function highlightCharmander() {
   if (!charmander) return;
 
-  // Salvar materiais originais
   const originalMaterials = [];
   charmander.traverse((node) => {
     if (node.isMesh) {
       originalMaterials.push(node.material);
       node.material = new THREE.MeshStandardMaterial({
-        color: 0xffd700, // Cor brilhante (dourado)
+        color: 0xffd700, 
         emissive: 0xffd700,
         emissiveIntensity: 0.8,
       });
     }
   });
 
-  // Reverter o material após 500ms
   setTimeout(() => {
     let i = 0;
     charmander.traverse((node) => {
@@ -158,8 +148,7 @@ function highlightCharmander() {
 function captureCharmander() {
   if (!charmander || !pokeball) return;
 
-  // Animação do Charmander se movendo para a Pokébola
-  const duration = 1000; // Duração da captura em milissegundos
+  const duration = 1000; 
   const startPosition = charmander.position.clone();
   const targetPosition = pokeball.position.clone();
 
@@ -167,19 +156,16 @@ function captureCharmander() {
 
   function animateCapture() {
     const elapsedTime = performance.now() - startTime;
-    const t = Math.min(elapsedTime / duration, 1); // Progresso da animação (0 a 1)
+    const t = Math.min(elapsedTime / duration, 1); 
 
-    // Interpolação linear entre startPosition e targetPosition
     charmander.position.lerpVectors(startPosition, targetPosition, t);
 
     if (t < 1) {
       requestAnimationFrame(animateCapture);
     } else {
-      // Remover o Charmander da cena
       scene.remove(charmander);
       console.log("Charmander capturado!");
 
-      // Iniciar efeito de piscar da Pokébola
       startPokeballBlinking();
     }
   }
@@ -195,23 +181,20 @@ function startPokeballBlinking() {
     if (node.isMesh) return node.material;
   });
 
-  // Alterar o material da Pokébola para simular o piscar
   const interval = setInterval(() => {
     pokeball.traverse((node) => {
       if (node.isMesh) {
         node.material.emissive = isBlinking
-          ? new THREE.Color(0xff0000) // Cor de piscar
-          : new THREE.Color(0x000000); // Normal
+          ? new THREE.Color(0xff0000) 
+          : new THREE.Color(0x000000); 
       }
     });
     isBlinking = !isBlinking;
-  }, 200); // Intervalo de piscar (200ms)
+  }, 200); 
 
-  // Parar o piscar após 2 segundos
   setTimeout(() => {
     clearInterval(interval);
 
-    // Restaurar o material original
     pokeball.traverse((node) => {
       if (node.isMesh) {
         node.material.emissive = new THREE.Color(0x000000);
@@ -223,7 +206,6 @@ function startPokeballBlinking() {
 }
 
 function resetScene() {
-  // Remover Pokébola e Charmander (se existentes)
   if (pokeball) {
     scene.remove(pokeball);
     pokeball = null;
@@ -233,7 +215,6 @@ function resetScene() {
     charmander = null;
   }
 
-  // Recarregar os modelos
   loadModel("Low_Poly_Charmander.glb", { x: 0, y: 0.5, z: -1 }, (model) => {
     charmander = model;
     charmander.rotation.set(0, Math.PI, 0);
@@ -252,134 +233,114 @@ function resetScene() {
 
 document.getElementById("resetButton").addEventListener("click", resetScene);
 
-let isMousePressed = false; // Indica se o botão do mouse está pressionado
-let initialMousePosition = new THREE.Vector2(); // Posição inicial do mouse
-let finalMousePosition = new THREE.Vector2(); // Posição final do mouse
-let isMouseMoving = false; // Indica se o mouse está em movimento
+let isMousePressed = false;
+let initialMousePosition = new THREE.Vector2(); 
+let finalMousePosition = new THREE.Vector2(); 
+let isMouseMoving = false; 
 
-// Evento de movimento do mouse
 window.addEventListener("mousemove", (event) => {
   if (isMousePressed && pokeball) {
-    // Normalizar as coordenadas do mouse
     const currentMousePosition = new THREE.Vector2(
       (event.clientX / window.innerWidth) * 2 - 1,
       -(event.clientY / window.innerHeight) * 2 + 1
     );
 
-    // Detectar se o mouse se moveu
     if (!currentMousePosition.equals(initialMousePosition)) {
-      isMouseMoving = true; // O mouse está em movimento
+      isMouseMoving = true; 
 
-      // Atualizar a rotação da Pokébola (efeito visual)
-      pokeball.rotation.x += 0.1; // Rotação no eixo X
-      pokeball.rotation.y += 0.1; // Rotação no eixo Y
+      pokeball.rotation.x += 0.1; 
+      pokeball.rotation.y += 0.1; 
     }
 
-    // Atualizar a posição final do mouse
     finalMousePosition.copy(currentMousePosition);
   }
 });
 
-// Evento de clique do mouse
 window.addEventListener("mousedown", (event) => {
   if (event.button === 0) {
-    // Botão esquerdo do mouse
-    isMousePressed = true; // Ativar o estado de movimento
-    isMouseMoving = true; // Resetar o estado de movimento
+    isMousePressed = true;
+    isMouseMoving = true;
 
-    // Armazenar a posição inicial do mouse
     initialMousePosition.set(
       (event.clientX / window.innerWidth) * 2 - 1,
       -(event.clientY / window.innerHeight) * 2 + 1
     );
 
-    // Resetar a posição final do mouse
     finalMousePosition.copy(initialMousePosition);
   }
 });
 
-// Evento de soltura do mouse
 window.addEventListener("mouseup", (event) => {
   if (event.button === 0) {
     isMousePressed = false;
 
     if (isMouseMoving && pokeball) {
-      // Calcular a direção do arremesso com base na posição do Pokémon
+      
       const targetPosition = new THREE.Vector3(pokeball.position.x, pokeball.position.y, pokeball.position.z);
       const throwDirection = new THREE.Vector3(
-        targetPosition.x - camera.position.x, // Direção em relação à câmera
-        targetPosition.y - camera.position.y, // Direção em relação à câmera
-        targetPosition.z - camera.position.z  // Direção em relação à câmera
+        targetPosition.x - camera.position.x, 
+        targetPosition.y - camera.position.y, 
+        targetPosition.z - camera.position.z  
       ).normalize();
 
-      // Calcular a força do arremesso com base na distância do mouse
-      const throwForce = initialMousePosition.distanceTo(finalMousePosition) * 5; // Ajuste a força conforme necessário
+      const throwForce = initialMousePosition.distanceTo(finalMousePosition) * 5; 
 
-      // Ajustar a posição de lançamento para melhorar o efeito de colisão
       const adjustedTargetPosition = new THREE.Vector3(
         targetPosition.x + throwDirection.x * throwForce,
         targetPosition.y + throwDirection.y * throwForce,
         targetPosition.z + throwDirection.z * throwForce
       );
 
-      // Aplicar o arremesso à Pokébola
       throwPokeballWithParabolicMotion(adjustedTargetPosition, throwDirection, throwForce);
     } else {
       console.log("Pokébola clicada sem movimento.");
     }
 
-    isMouseMoving = false; // Resetar o estado de movimento
+    isMouseMoving = false; 
   }
 });
 
-// Função para arremessar a Pokébola com movimento parabólico
 function throwPokeballWithParabolicMotion(targetPosition, direction, throwForce) {
   if (!pokeball) return;
 
-  const startPosition = pokeball.position.clone(); // Posição inicial da Pokébola
+  const startPosition = pokeball.position.clone(); 
 
-  // Componentes horizontais e verticais do movimento
-  const horizontalVelocity = direction.clone().multiplyScalar(throwForce); // Velocidade horizontal
-  const verticalVelocity = new THREE.Vector3(0, 10, 0); // Velocidade inicial vertical (ajustável)
+  const horizontalVelocity = direction.clone().multiplyScalar(throwForce);
+  const verticalVelocity = new THREE.Vector3(0, 10, 0); 
   
-  const gravity = -9.8; // Aceleração gravitacional (ajustável)
+  const gravity = -9.8;
 
-  const duration = 1000; // Duração da animação em milissegundos
+  const duration = 1000; 
   const startTime = performance.now();
 
   function animateThrow() {
     const elapsedTime = performance.now() - startTime;
-    const t = Math.min(elapsedTime / duration, 1); // Progresso da animação (0 a 1)
+    const t = Math.min(elapsedTime / duration, 1);
 
-    // Cálculo da posição com base na física de movimento projetado
-    const horizontalMovement = horizontalVelocity.clone().multiplyScalar(t); // Movimento horizontal
-    const verticalMovement = verticalVelocity.clone().multiplyScalar(t); // Movimento vertical
+    const horizontalMovement = horizontalVelocity.clone().multiplyScalar(t); 
+    const verticalMovement = verticalVelocity.clone().multiplyScalar(t); 
 
-    // Aplicar o efeito da gravidade no movimento vertical
     const gravityEffect = gravity * t * t;
     const verticalPosition = verticalMovement.y + gravityEffect;
 
-    // Atualizar posição da Pokébola
     pokeball.position.set(
       startPosition.x + horizontalMovement.x,
       startPosition.y + verticalPosition,
       startPosition.z + horizontalMovement.z
     );
 
-    // Rotação da Pokébola (efeito visual)
     pokeball.rotation.x += 0.1;
     pokeball.rotation.y += 0.1;
 
-    // Verificação de colisão com o Pokémon
     const distanceToTarget = pokeball.position.distanceTo(charmander.position);
-    if (t >= 1 || distanceToTarget < 0.5) { // Colisão ou chegou ao final
+    if (t >= 1 || distanceToTarget < 0.5) {
       if (distanceToTarget < 0.5) {
         console.log("Pokébola acertou o Pokémon!");
-        createImpactEffect(charmander.position); // Efeito de impacto
+        createImpactEffect(charmander.position);
 
-        highlightCharmander(); // Destacar o Charmander
+        highlightCharmander();
 
-        captureCharmander(); // Chama a função de captura
+        captureCharmander();
       } else {
         console.log("Pokébola chegou ao seu destino sem acertar o Pokémon.");
       }
@@ -391,11 +352,9 @@ function throwPokeballWithParabolicMotion(targetPosition, direction, throwForce)
   animateThrow();
 }
 
-// Configurar câmera
 camera.position.set(0, 1, 5);
 camera.lookAt(0, 0, 0);
 
-// Animação
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
